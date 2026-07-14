@@ -24,3 +24,4 @@ dependencyResolutionManagement {
 
 rootProject.name = "CushyStorage"
 include(":app")
+include(":cushy-storage")

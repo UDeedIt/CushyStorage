@@ -1,4 +1,4 @@
-package pro.udeedit.devtools.cushystorage
+package pro.udeedit.devtools.cushystorage.demo
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -11,7 +11,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
-import pro.udeedit.devtools.cushystorage.ui.theme.CushyStorageTheme
+import pro.udeedit.devtools.cushystorage.demo.theme.CushyStorageTheme
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
