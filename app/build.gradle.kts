@@ -4,7 +4,7 @@ plugins {
 }
 
 android {
-    namespace = "pro.udeedit.devtools.cushystorage"
+    namespace = "pro.udeedit.devtools.cushystorage.demo"
     compileSdk {
         version = release(37) {
             minorApiLevel = 1
@@ -12,7 +12,7 @@ android {
     }
 
     defaultConfig {
-        applicationId = "pro.udeedit.devtools.cushystorage"
+        applicationId = "pro.udeedit.devtools.cushystorage.demo"
         minSdk = 24
         targetSdk = 37
         versionCode = 1
@@ -32,8 +32,8 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_17
+        targetCompatibility = JavaVersion.VERSION_17
     }
 
     buildFeatures {

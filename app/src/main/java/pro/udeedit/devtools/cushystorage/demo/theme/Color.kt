@@ -1,4 +1,4 @@
-package pro.udeedit.devtools.cushystorage.ui.theme
+package pro.udeedit.devtools.cushystorage.demo.theme
 
 import androidx.compose.ui.graphics.Color
 
