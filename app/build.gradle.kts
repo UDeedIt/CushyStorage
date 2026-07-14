@@ -58,4 +58,7 @@ dependencies {
     androidTestImplementation(libs.androidx.junit)
     debugImplementation(libs.androidx.compose.ui.test.manifest)
     debugImplementation(libs.androidx.compose.ui.tooling)
+
+    // Connects the app to the CushyStorage library module
+    implementation(project(":cushy-storage"))
 }
