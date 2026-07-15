@@ -1,4 +1,4 @@
-package pro.udeedit.devtools.cushystorage.demo.theme
+package pro.udeedit.devtools.cushystorage.demo.ui.theme
 
 import android.os.Build
 import androidx.compose.foundation.isSystemInDarkTheme

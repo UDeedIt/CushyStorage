@@ -1,4 +1,4 @@
-package pro.udeedit.devtools.cushystorage.demo.theme
+package pro.udeedit.devtools.cushystorage.demo.ui.theme
 
 import androidx.compose.material3.Typography
 import androidx.compose.ui.text.TextStyle

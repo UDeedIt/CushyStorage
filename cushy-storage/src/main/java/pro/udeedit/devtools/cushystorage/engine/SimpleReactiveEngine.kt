@@ -17,7 +17,7 @@ private val Context.simpleDataStore by preferencesDataStore("cushy_simple_reacti
  */
 internal class SimpleReactiveEngine(context: Context) {
 
-    private val appContext = context.applicationContext
+    private val appContext = context.applicationContext ?: context
 
     suspend fun saveString(key: String, value: String) {
         val prefKey = stringPreferencesKey(key)
@@ -32,5 +32,17 @@ internal class SimpleReactiveEngine(context: Context) {
     fun observeString(key: String, defaultValue: String = ""): Flow<String> {
         val prefKey = stringPreferencesKey(key)
         return appContext.simpleDataStore.data.map { it[prefKey] ?: defaultValue }
+    }
+
+    /**
+     * Removes a specific key from the simple reactive DataStore.
+     *
+     * @param key The identifier to remove.
+     */
+    suspend fun remove(key: String) {
+        val prefKey = stringPreferencesKey(key)
+        appContext.simpleDataStore.edit {
+            it.remove(prefKey)
+        }
     }
 }
