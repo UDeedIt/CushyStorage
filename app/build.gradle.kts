@@ -6,17 +6,17 @@ plugins {
 android {
     namespace = "pro.udeedit.devtools.cushystorage.demo"
 
-    compileSdk = 35 // 37
-//    compileSdk {
-//        version = release(37) {
-//            minorApiLevel = 1
-//        }
-//    }
+//    compileSdk = 35 // 37
+    compileSdk {
+        version = release(37) {
+            minorApiLevel = 1
+        }
+    }
 
     defaultConfig {
         applicationId = "pro.udeedit.devtools.cushystorage.demo"
         minSdk = 24
-        targetSdk = 35 // 37
+        targetSdk = 37
         versionCode = 1
         versionName = "1.0"
 
