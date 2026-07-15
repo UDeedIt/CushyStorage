@@ -8,9 +8,22 @@ CushyStorage eliminates the complexity of Android data persistence by providing 
 
 ## 📸 Visual Showcase
 
-| Integrated Dashboard | Security Visualization |
-| :---: | :---: |
-| Main Demo Screen | Secure Storage View |
+<p align="center">
+  <b>CushyStorage Demo Light</b><br>
+    <img src="./assets/u2_cushystorage_screenshot_01.png" width="30%" alt="" />
+    <img src="./assets/u2_cushystorage_screenshot_02.png" width="30%" alt="" />
+    <img src="./assets/u2_cushystorage_screenshot_03.png" width="30%" alt="" />
+    <img src="./assets/u2_cushystorage_screenshot_04.png" width="30%" alt="" />
+    <img src="./assets/u2_cushystorage_screenshot_05.png" width="30%" alt="" />
+</p>
+
+<p align="center">
+  <b>CushyStorage Demo Light</b><br>
+    <img src="./assets/u2_cushystorage_screenshot_06.png" width="30%" alt="" />
+    <img src="./assets/u2_cushystorage_screenshot_07.png" width="30%" alt="" />
+    <img src="./assets/u2_cushystorage_screenshot_08.png" width="30%" alt="" />
+    <img src="./assets/u2_cushystorage_screenshot_09.png" width="30%" alt="" />
+</p>
 
 > Tip: Use the interactive demo in the :app module to see these features in action.
 
