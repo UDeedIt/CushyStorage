@@ -1,5 +1,6 @@
 plugins {
     alias(libs.plugins.android.library)
+    `maven-publish`
 }
 
 android {
@@ -16,11 +17,34 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles("consumer-rules.pro")
     }
+
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+    publishing {
+        singleVariant("release") {
+            withSourcesJar()
+        }
+    }
+}
+
+// Publishing Block
+afterEvaluate {
+    publishing {
+        publications {
+            create<MavenPublication>("release") {
+                // These properties are pulled directly from your 'gradle.properties'
+                groupId = project.property("LIBRARY_GROUP").toString()
+                artifactId = project.property("LIBRARY_ARTIFACT_ID").toString()
+                version = project.property("LIBRARY_VERSION").toString()
+
+                // This attaches the compiled AAR and metadata to the publication
+                from(components["release"])
+            }
+        }
+    }
 }
 
 dependencies {
