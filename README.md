@@ -27,26 +27,27 @@ CushyStorage eliminates the complexity of Android data persistence by providing 
 ## 🛠️ API Reference & Implementation
 
 ### 1. Initialization
-Initialize once in your Application class to set up the engines globally.
+Initialize once in your Application class to set up the engines globally. 
 
-kotlin 
+```kotlin
 class MyApp : Application() { 
     override fun onCreate() { 
-        super.onCreate() 
-        // Recommended: Default initialization 
+        super.onCreate()
+
+        // Recommended: Default initialization
         CushyStorage.init(this) 
          
         // Optional: Advanced Security Configuration 
         val config = CushyConfig(keySize = 256, tagSizeBits = 128) 
         CushyStorage.init(this, config) 
-    } 
-} 
-
+    }
+}
+```
 
 ### 2. Standard Storage (Simple)
 Perfect for non-sensitive data like usernames, toggles, or user settings.
 
-kotlin 
+```kotlin
 // --- Strings --- 
 CushyStorage.saveString("username", "Alex") 
 val name = CushyStorage.getString("username", "Guest") 
@@ -58,12 +59,12 @@ val isPremium = CushyStorage.getBoolean("is_premium", false)
 // --- Integers --- 
 CushyStorage.saveInt("app_launches", 5) 
 val launchCount = CushyStorage.getInt("app_launches", 0) 
-
+```
 
 ### 3. Reactive Storage (Simple)
 Designed for modern UIs (Jetpack Compose) where data needs to update instantly.
 
-kotlin 
+```kotlin
 // Save Asynchronously 
 scope.launch { 
     CushyStorage.saveStringReactive("live_counter", "10") 
@@ -76,13 +77,14 @@ val counter by CushyStorage.observeString("live_counter", "0").collectAsStateWit
 scope.launch { 
     val currentVal = CushyStorage.getStringReactiveOnce("live_counter") 
 } 
-
+```
 
 ### 4. Secure Storage (Encrypted)
 Uses AES-GCM and the Android KeyStore to protect sensitive information.
 
-kotlin 
-// Encrypt and Save §scope.launch { 
+```kotlin
+// Encrypt and Save 
+scope.launch { 
     CushyStorage.saveStringEncrypted("user_token", "jwt_secret_data") 
 } 
  
@@ -97,12 +99,12 @@ val secureAlias by CushyStorage.observeStringEncrypted("secret_alias").collectAs
  
 // Debug Utility: See the raw scrambled text (IV + Ciphertext) 
 val raw = CushyStorage.getRawStringEncrypted("user_token") 
-
+```
 
 ### 5. Utilities & Housekeeping
 Unified tools to manage your storage across all layers.
 
-kotlin 
+```kotlin 
 // Check if a key exists (in simple layer) 
 val exists = CushyStorage.hasValue("username") 
  
@@ -110,7 +112,7 @@ val exists = CushyStorage.hasValue("username")
 scope.launch { 
     CushyStorage.remove("user_token") 
 } 
-
+```
 
 ---
 
