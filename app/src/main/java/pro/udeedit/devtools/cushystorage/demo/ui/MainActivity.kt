@@ -531,9 +531,9 @@ fun SectionTitle(title: String) {
 
 
 /**
- * Preview for Android Studio.
+ * Preview
  */
-@Preview(showBackground = true, apiLevel = 35)
+@Preview(showBackground = true)
 @Composable
 fun DemoPreview() {
     val context = LocalContext.current
