@@ -25,7 +25,7 @@ private val Context.dataStore by preferencesDataStore("cushy_secure_storage")
  */
 internal class SecureEngine(context: Context, config: CushyConfig) {
 
-    private val appContext = context.applicationContext
+    private val appContext = context.applicationContext ?: context
     private val encryptor = CushyEncryptor(config)
 
     /**
@@ -51,6 +51,14 @@ internal class SecureEngine(context: Context, config: CushyConfig) {
         val prefKey = stringPreferencesKey(key)
         val encryptedValue = appContext.dataStore.data.first()[prefKey]
         return encryptedValue?.let { encryptor.decrypt(it) }
+    }
+
+    /**
+     * Fetches the raw string from DataStore without passing it through the decryptor.
+     */
+    suspend fun getRawOnce(key: String): String? {
+        val prefKey = stringPreferencesKey(key)
+        return appContext.dataStore.data.first()[prefKey]
     }
 
     /**

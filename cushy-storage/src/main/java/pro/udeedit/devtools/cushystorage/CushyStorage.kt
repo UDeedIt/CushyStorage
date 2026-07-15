@@ -20,6 +20,12 @@ object CushyStorage {
     private var secureEngine: SecureEngine? = null
 
     /**
+     * Checks if the CushyStorage library has been initialized.
+     */
+    val isInitialized: Boolean
+        get() = preferences != null && simpleReactiveEngine != null && secureEngine != null
+
+    /**
      * Initializes the CushyStorage library.
      *
      * This should be called once, typically in your [android.app.Application] class.
@@ -29,7 +35,7 @@ object CushyStorage {
      * industry-standard defaults (AES-GCM, 256-bit key) are used.
      */
     fun init(context: Context, config: CushyConfig = CushyConfig()) {
-        val appContext = context.applicationContext
+        val appContext = context.applicationContext ?: context
 
         // Initialize Standard Storage
         if (preferences == null) {
@@ -141,6 +147,17 @@ object CushyStorage {
     }
 
     /**
+     * Retrieves a [String] value from reactive storage once, without observing changes.
+     *
+     * @param key The identifier for the data.
+     * @param defaultValue Value to return if the key doesn't exist.
+     * @return The current string value.
+     */
+    suspend fun getStringReactiveOnce(key: String, defaultValue: String = ""): String {
+        return getSimpleReactive().getStringOnce(key, defaultValue)
+    }
+
+    /**
      * Provides a [Flow] that emits the non-encrypted value whenever it changes.
      *
      * @param key The identifier for the data to observe.
@@ -174,6 +191,18 @@ object CushyStorage {
     }
 
     /**
+     * Retrieves the raw, encrypted Base64 string from secure storage without decrypting it.
+     * Useful for debugging or demonstrating the encryption layer.
+     *
+     * @param key The identifier for the data.
+     * @return The raw Base64 [IV + Ciphertext] string, or null if it doesn't exist.
+     */
+    suspend fun getRawStringEncrypted(key: String): String? {
+        // We bypass the decryption and return the raw string from the engine
+        return getSecure().getRawOnce(key)
+    }
+
+    /**
      * Provides a [Flow] that emits the decrypted value whenever it changes.
      */
     fun observeStringEncrypted(key: String): Flow<String?> {
@@ -184,16 +213,25 @@ object CushyStorage {
 
     /**
      * Checks whether the standard storage contains a specific key.
+     *
+     * @param key The name of the preference to check.
+     * @return True if the key exists in SharedPreferences.
      */
     fun hasValue(key: String): Boolean = getPrefs().contains(key)
 
     /**
-     * Removes a specific preference from standard storage.
-     * Note: This currently only removes from the Simple SharedPreferences layer.
+     * Removes a specific preference from all storage layers (Simple, Reactive, and Secure).
      *
      * @param key The name of the preference to remove.
      */
-    fun remove(key: String) {
+    suspend fun remove(key: String) {
+        // 1. Remove from Simple SharedPreferences (Synchronous)
         getPrefs().edit { remove(key) }
+
+        // 2. Remove from Simple Reactive DataStore (Asynchronous)
+        getSimpleReactive().remove(key)
+
+        // 3. Remove from Secure DataStore (Asynchronous)
+        getSecure().remove(key)
     }
 }
