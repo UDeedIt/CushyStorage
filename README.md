@@ -2,62 +2,130 @@
 
 A unified, ultra-comfortable wrapper for Android Preferences.
 
-CushyStorage provides a single, intuitive API that replaces the fragmented use of standard SharedPreferences, Jetpack DataStore, and the deprecated EncryptedSharedPreferences.
+CushyStorage eliminates the complexity of Android data persistence by providing a single, "flat" API that handles standard SharedPreferences, reactive DataStore flows, and hardware-secured AES-GCM encryption.
 
-## 🚀 Why CushyStorage?
-Android storage is fragmented. Developers often have to choose between old blocking APIs and complex reactive ones. CushyStorage bridges this gap by offering three distinct layers under one "Cushy" interface:
+---
 
-1. Standard Storage (Simple): Fast, synchronous SharedPreferences for non-sensitive UI settings.
-2. Reactive Storage (Simple): Flow-based DataStore for real-time UI updates (perfect for Jetpack Compose).
-3. Secure Storage (Encrypted): Hardware-backed AES-GCM encryption via Android KeyStore, providing a modern replacement for the legacy EncryptedSharedPreferences.
+## 📸 Visual Showcase
 
-## ✨ Key Features
-- Flat API: Access everything via a single CushyStorage object.
-- Zero Boilerplate: No manual Cipher or KeyStore setup required.
-- Reactive by Design: Built-in support for Kotlin Flow to update UI automatically.
-- Developer Focused (D2D): Comprehensive KDoc documentation and clean internal architecture.
-- Customizable: Optional CushyConfig to adjust encryption parameters (Tag size, IV size, etc.).
+| Integrated Dashboard | Security Visualization |
+| :---: | :---: |
+| Main Demo Screen | Secure Storage View |
 
-## 🛠 Quick Start
+> Tip: Use the interactive demo in the :app module to see these features in action.
 
-### 1. Initialize
-Initialize once in your Application class:
+---
+
+## 🏗️ Architecture: The Three Layers
+
+1. Standard (Simple): Fast, synchronous persistence for UI states and non-sensitive settings.
+2. Reactive (Simple): Asynchronous, thread-safe Flow updates via Jetpack DataStore.
+3. Secure (Encrypted): Hardware-backed encryption replacing the deprecated EncryptedSharedPreferences.
+
+---
+
+## 🛠️ API Reference & Implementation
+
+### 1. Initialization
+Initialize once in your Application class to set up the engines globally.
+
 kotlin 
 class MyApp : Application() { 
-    override fun onCreate() {
+    override fun onCreate() { 
         super.onCreate() 
-        // Minimal setup 
+        // Recommended: Default initialization 
         CushyStorage.init(this) 
+         
+        // Optional: Advanced Security Configuration 
+        val config = CushyConfig(keySize = 256, tagSizeBits = 128) 
+        CushyStorage.init(this, config) 
     } 
 } 
 
-### 2. Basic Usage
-kotlin
-// Simple Save (Synchronous)
-CushyStorage.saveString("username", "Alex") 
 
-// Simple Get 
-val name = CushyStorage.getString("username")
+### 2. Standard Storage (Simple)
+Perfect for non-sensitive data like usernames, toggles, or user settings.
 
-
-### 3. Reactive & Secure Usage
 kotlin 
-// Observe data changes in Compose 
-val counter by CushyStorage.observeString("count", "0").collectAsStateWithLifecycle() 
+// --- Strings --- 
+CushyStorage.saveString("username", "Alex") 
+val name = CushyStorage.getString("username", "Guest") 
+ 
+// --- Booleans --- 
+CushyStorage.saveBoolean("is_premium", true) 
+val isPremium = CushyStorage.getBoolean("is_premium", false) 
+ 
+// --- Integers --- 
+CushyStorage.saveInt("app_launches", 5) 
+val launchCount = CushyStorage.getInt("app_launches", 0) 
 
-// Secure Encryption (Asynchronous) 
-lifecycleScope.launch { 
-     CushyStorage.saveStringEncrypted("token", "secret_api_key")
-     val decrypted = CushyStorage.getStringEncrypted("token") 
-}
 
-## 🔐 Security Architecture
-CushyStorage implements AES-GCM (Galois/Counter Mode), which provides both data confidentiality and authenticity.
-- Key Management: Cryptographic keys are generated and stored in the Android KeyStore, ensuring they never leave the device's secure hardware.
-- Initialization Vector (IV): A unique, random IV is generated for every write operation and bundled with the ciphertext to prevent pattern analysis.
+### 3. Reactive Storage (Simple)
+Designed for modern UIs (Jetpack Compose) where data needs to update instantly.
+
+kotlin 
+// Save Asynchronously 
+scope.launch { 
+    CushyStorage.saveStringReactive("live_counter", "10") 
+} 
+
+// Observe Changes (Reactive Flow) 
+val counter by CushyStorage.observeString("live_counter", "0").collectAsStateWithLifecycle() 
+ 
+// One-Shot Fetch from DataStore 
+scope.launch { 
+    val currentVal = CushyStorage.getStringReactiveOnce("live_counter") 
+} 
+
+
+### 4. Secure Storage (Encrypted)
+Uses AES-GCM and the Android KeyStore to protect sensitive information.
+
+kotlin 
+// Encrypt and Save §scope.launch { 
+    CushyStorage.saveStringEncrypted("user_token", "jwt_secret_data") 
+} 
+ 
+// Decrypt and Fetch Once 
+scope.launch { 
+    val decryptedToken = CushyStorage.getStringEncrypted("user_token") 
+} 
+ 
+// Observe & Auto-Decrypt (The Power Layer) 
+// Decrypts data in the background and pushes plain-text to the UI 
+val secureAlias by CushyStorage.observeStringEncrypted("secret_alias").collectAsStateWithLifecycle() 
+ 
+// Debug Utility: See the raw scrambled text (IV + Ciphertext) 
+val raw = CushyStorage.getRawStringEncrypted("user_token") 
+
+
+### 5. Utilities & Housekeeping
+Unified tools to manage your storage across all layers.
+
+kotlin 
+// Check if a key exists (in simple layer) 
+val exists = CushyStorage.hasValue("username") 
+ 
+// Unified Remove: Surgically delete a key from ALL layers 
+scope.launch { 
+    CushyStorage.remove("user_token") 
+} 
+
+
+---
+
+## 🔐 Security Specification
+
+CushyStorage is built on industry-standard security principles:
+- Galois/Counter Mode (GCM): Provides both confidentiality and authenticity.
+- Hardware Security: Keys are stored in the device's Trusted Environment (TEE) where available.
+- Randomized IV: A unique IV is generated for every write, ensuring high cryptographic entropy.
+- Preview Safety: Internal isPreview gate prevents KeyStore crashes in Android Studio.
+
+---
 
 ## 📄 License
 This project is licensed under the MIT License.
 
 ---
-Developed with ❤️ for the Android Developer Community.
+Developed with ❤️ by UDeedIt - Focus on your app's logic, we'll handle the "Cushy" storage.
