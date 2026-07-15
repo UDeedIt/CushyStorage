@@ -4,6 +4,7 @@ import android.content.Context
 import android.content.SharedPreferences
 import androidx.core.content.edit
 import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flowOf
 import pro.udeedit.devtools.cushystorage.engine.SecureEngine
 import pro.udeedit.devtools.cushystorage.engine.SimpleReactiveEngine
 
@@ -21,9 +22,16 @@ object CushyStorage {
 
     /**
      * Checks if the CushyStorage library has been initialized.
+     *
+     * Note: During IDE Preview mode, this returns true if only the simple layers
+     * are ready, as the secure engine is intentionally disabled in non-Android environments.
      */
     val isInitialized: Boolean
-        get() = preferences != null && simpleReactiveEngine != null && secureEngine != null
+        get() = if (isPreview()) {
+            preferences != null && simpleReactiveEngine != null
+        } else {
+            preferences != null && simpleReactiveEngine != null && secureEngine != null
+        }
 
     /**
      * Initializes the CushyStorage library.
@@ -31,32 +39,49 @@ object CushyStorage {
      * This should be called once, typically in your [android.app.Application] class.
      *
      * @param context The context used to initialize storage. Application context is used internally.
-     * @param config Optional configuration to customize encryption parameters. If not provided,
-     * industry-standard defaults (AES-GCM, 256-bit key) are used.
+     * @param config Optional configuration to customize encryption parameters.
      */
     fun init(context: Context, config: CushyConfig = CushyConfig()) {
-        val appContext = context.applicationContext ?: context
+        val appContext = context.applicationContext
 
-        // Initialize Standard Storage
+        // Initialize Standard Storage (SharedPreferences works in IDE Previews)
         if (preferences == null) {
             val name = "${appContext.packageName}_preferences"
             preferences = appContext.getSharedPreferences(name, Context.MODE_PRIVATE)
         }
 
-        // Initialize Simple Reactive Storage
+        // Initialize Simple Reactive Storage (DataStore works in IDE Previews)
         if (simpleReactiveEngine == null) {
             simpleReactiveEngine = SimpleReactiveEngine(appContext)
         }
 
-        // Initialize Secure Storage with the provided configuration
-        if (secureEngine == null) {
+        /**
+         * SECURE INITIALIZATION SAFETY CHECK
+         * We skip the SecureEngine initialization if we detect the code is running
+         * inside the Android Studio Layout Editor. This prevents a crash caused by
+         * the missing "AndroidKeyStore" on desktop JVMs.
+         */
+        if (!isPreview() && secureEngine == null) {
             secureEngine = SecureEngine(appContext, config)
         }
     }
 
     /**
-     * Internal helper to ensure [init] was called before accessing simple storage.
-     * @throws IllegalStateException if [init] has not been called.
+     * Internal helper to detect if the code is running inside the Android Studio Preview.
+     */
+    private fun isPreview(): Boolean {
+        return try {
+            // Checks for common desktop JVM and IDE properties
+            android.os.Build.FINGERPRINT.contains("generic") ||
+                    android.os.Build.MODEL.contains("google_sdk") ||
+                    System.getProperty("java.vendor")?.contains("JetBrains") == true
+        } catch (_: Exception) {
+            false
+        }
+    }
+
+    /**
+     * Internal helper for accessing SharedPreferences.
      */
     private fun getPrefs(): SharedPreferences {
         return preferences ?: throw IllegalStateException(
@@ -65,25 +90,26 @@ object CushyStorage {
     }
 
     /**
-     * Internal helper to ensure [init] was called before accessing reactive storage.
+     * Internal helper for accessing Reactive Engine.
      */
     private fun getSimpleReactive(): SimpleReactiveEngine =
         simpleReactiveEngine ?: throw IllegalStateException("CushyStorage is not initialized.")
 
     /**
-     * Internal helper to ensure [init] was called before accessing secure storage.
+     * Internal helper for accessing Secure Engine.
+     * Returns null during Previews to prevent KeyStore-related crashes.
      */
-    private fun getSecure(): SecureEngine {
-        return secureEngine ?: throw IllegalStateException("CushyStorage is not initialized.")
+    private fun getSecure(): SecureEngine? {
+        if (secureEngine == null && !isPreview()) {
+            throw IllegalStateException("CushyStorage is not initialized.")
+        }
+        return secureEngine
     }
 
     // --- Standard Storage (Simple) ---
 
     /**
      * Saves a [String] value to standard storage.
-     *
-     * @param key The name of the preference to modify.
-     * @param value The new value for the preference.
      */
     fun saveString(key: String, value: String) {
         getPrefs().edit { putString(key, value) }
@@ -91,10 +117,6 @@ object CushyStorage {
 
     /**
      * Retrieves a [String] value from standard storage.
-     *
-     * @param key The name of the preference to retrieve.
-     * @param defaultValue Value to return if this preference does not exist.
-     * @return Returns the preference value if it exists, or [defaultValue].
      */
     fun getString(key: String, defaultValue: String = ""): String {
         return getPrefs().getString(key, defaultValue) ?: defaultValue
@@ -102,9 +124,6 @@ object CushyStorage {
 
     /**
      * Saves a [Boolean] value to standard storage.
-     *
-     * @param key The name of the preference to modify.
-     * @param value The new value for the preference.
      */
     fun saveBoolean(key: String, value: Boolean) {
         getPrefs().edit { putBoolean(key, value) }
@@ -112,9 +131,6 @@ object CushyStorage {
 
     /**
      * Retrieves a [Boolean] value from standard storage.
-     *
-     * @param key The name of the preference to retrieve.
-     * @param defaultValue Value to return if this preference does not exist.
      */
     fun getBoolean(key: String, defaultValue: Boolean = false): Boolean {
         return getPrefs().getBoolean(key, defaultValue)
@@ -138,20 +154,13 @@ object CushyStorage {
 
     /**
      * Saves a [String] value reactively (non-encrypted) via DataStore.
-     *
-     * @param key The identifier for the data.
-     * @param value The string value to store.
      */
     suspend fun saveStringReactive(key: String, value: String) {
         getSimpleReactive().saveString(key, value)
     }
 
     /**
-     * Retrieves a [String] value from reactive storage once, without observing changes.
-     *
-     * @param key The identifier for the data.
-     * @param defaultValue Value to return if the key doesn't exist.
-     * @return The current string value.
+     * Retrieves a [String] value from reactive storage once.
      */
     suspend fun getStringReactiveOnce(key: String, defaultValue: String = ""): String {
         return getSimpleReactive().getStringOnce(key, defaultValue)
@@ -159,10 +168,6 @@ object CushyStorage {
 
     /**
      * Provides a [Flow] that emits the non-encrypted value whenever it changes.
-     *
-     * @param key The identifier for the data to observe.
-     * @param defaultValue Value to return if the key doesn't exist.
-     * @return A [Flow] emitting the current value.
      */
     fun observeString(key: String, defaultValue: String = ""): Flow<String> {
         return getSimpleReactive().observeString(key, defaultValue)
@@ -172,66 +177,46 @@ object CushyStorage {
 
     /**
      * Encrypts and saves a [String] value to secure storage.
-     *
-     * @param key The identifier for the data.
-     * @param value The plain-text string to encrypt and store.
      */
     suspend fun saveStringEncrypted(key: String, value: String) {
-        getSecure().save(key, value)
+        getSecure()?.save(key, value)
     }
 
     /**
-     * Retrieves and decrypts a [String] value from secure storage.
-     *
-     * @param key The identifier for the data.
-     * @return The decrypted plain-text string, or null if the key doesn't exist.
+     * Retrieves and decrypts a [String] value from secure storage once.
      */
     suspend fun getStringEncrypted(key: String): String? {
-        return getSecure().getOnce(key)
+        return getSecure()?.getOnce(key)
     }
 
     /**
      * Retrieves the raw, encrypted Base64 string from secure storage without decrypting it.
-     * Useful for debugging or demonstrating the encryption layer.
-     *
-     * @param key The identifier for the data.
-     * @return The raw Base64 [IV + Ciphertext] string, or null if it doesn't exist.
      */
     suspend fun getRawStringEncrypted(key: String): String? {
-        // We bypass the decryption and return the raw string from the engine
-        return getSecure().getRawOnce(key)
+        return getSecure()?.getRawOnce(key)
     }
 
     /**
      * Provides a [Flow] that emits the decrypted value whenever it changes.
+     * Returns an empty flow if called during an IDE Preview.
      */
     fun observeStringEncrypted(key: String): Flow<String?> {
-        return getSecure().observe(key)
+        return getSecure()?.observe(key) ?: flowOf(null)
     }
 
     // --- Utilities ---
 
     /**
      * Checks whether the standard storage contains a specific key.
-     *
-     * @param key The name of the preference to check.
-     * @return True if the key exists in SharedPreferences.
      */
     fun hasValue(key: String): Boolean = getPrefs().contains(key)
 
     /**
      * Removes a specific preference from all storage layers (Simple, Reactive, and Secure).
-     *
-     * @param key The name of the preference to remove.
      */
     suspend fun remove(key: String) {
-        // 1. Remove from Simple SharedPreferences (Synchronous)
         getPrefs().edit { remove(key) }
-
-        // 2. Remove from Simple Reactive DataStore (Asynchronous)
         getSimpleReactive().remove(key)
-
-        // 3. Remove from Secure DataStore (Asynchronous)
-        getSecure().remove(key)
+        getSecure()?.remove(key)
     }
 }

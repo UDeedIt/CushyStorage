@@ -124,6 +124,12 @@ fun CushyDemoScreen() {
     var keyExistsStatus by remember { mutableStateOf("Enter a key to check") }
 
 
+    // Safety: Initialize only if not already done.
+    // The library's internal check prevents the KeyStore crash (on Preview).
+    LaunchedEffect(Unit) {
+        CushyStorage.init(context)
+    }
+
     // --- RESET CONFIRMATION DIALOG ---
 
     /**
@@ -530,9 +536,9 @@ fun SectionTitle(title: String) {
 @Preview(showBackground = true, apiLevel = 35)
 @Composable
 fun DemoPreview() {
-    // Ensure CushyStorage is initialized for the Preview.
-    // In a real app, this happens in Application.onCreate().
     val context = LocalContext.current
+
+    // The library now safely handles this even in the IDE environment
     if (!CushyStorage.isInitialized) {
         CushyStorage.init(context)
     }
