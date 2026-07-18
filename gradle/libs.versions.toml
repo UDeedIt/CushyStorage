@@ -42,4 +42,6 @@ androidx-datastore-preferences = { module = "androidx.datastore:datastore-prefer
 android-application = { id = "com.android.application", version.ref = "agp" }
 kotlin-compose = { id = "org.jetbrains.kotlin.plugin.compose", version.ref = "kotlin" }
 android-library = { id = "com.android.library", version.ref = "agp" }
+dokka = { id = "org.jetbrains.dokka", version = "2.2.0" }
+dokka-javadoc = { id = "org.jetbrains.dokka-javadoc", version = "2.2.0" }
 

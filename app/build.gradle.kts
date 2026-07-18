@@ -1,6 +1,9 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+
+    // Keep your existing Android and Kotlin plugins here
+//    id("org.jetbrains.dokka") version "2.0.0" apply false
 }
 
 android {
