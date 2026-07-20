@@ -37,6 +37,59 @@ CushyStorage eliminates the complexity of Android data persistence by providing 
 
 ---
 
+## 📦 Installation
+
+CushyStorage is available on Maven Central. Add the following dependency to your build.gradle.kts file:
+
+```kotlin 
+dependencies { 
+    implementation("pro.udeedit.devtools:cushystorage:1.0.2") 
+}
+```
+
+
+## ⚙️ Compatibility & Tech Stack
+
+- Minimum SDK: 24 (Android 7.0)
+- Compile SDK: 35 (Android 15)
+- Kotlin: 2.x (Modern Compiler DSL)
+- Architecture: 100% Kotlin Coroutines & Jetpack DataStore
+- Security: AES-GCM (Authenticated Encryption)
+
+## 🛠 Quick Start
+
+### 1. Initialize
+Initialize once in your Application class:
+```kotlin 
+class MyApp : Application() { 
+    override fun onCreate() { 
+        super.onCreate() 
+        CushyStorage.init(this) 
+    } 
+}
+```
+
+### 2. Usage Examples
+```kotlin 
+// Standard Save (Simple) 
+CushyStorage.saveString("username", "Alex") 
+ 
+// Reactive Observation (Compose) 
+val counter by CushyStorage.observeString("counter", "0").collectAsStateWithLifecycle() 
+ 
+// Secure Encryption (AES-GCM) 
+scope.launch { 
+    CushyStorage.saveStringEncrypted("token", "secret_123") 
+    val secret = CushyStorage.getStringEncrypted("token") 
+} 
+```
+
+---
+
+Version 1.0.2: First stable release with API 35 compatibility and Kotlin 2.x support.
+
+---
+
 ## 🛠️ API Reference & Implementation
 
 ### 1. Initialization
