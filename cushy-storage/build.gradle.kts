@@ -4,17 +4,16 @@ plugins {
     alias(libs.plugins.android.library)
     `maven-publish`
     id("signing")
-    alias(libs.plugins.kotlin.dokka)
-//    alias(libs.plugins.dokka.javadoc)
+    alias(libs.plugins.kotlin.dokka) // Dokka v2 applied
+    alias(libs.plugins.kotlin.android)
 }
 
 android {
     namespace = "pro.udeedit.devtools.cushystorage"
-    compileSdk {
-        version = release(37) {
-            minorApiLevel = 1
-        }
-    }
+
+    // Downgraded to 35 for maximum compatibility with existing projects
+    //noinspection GradleDependency
+    compileSdk = 35
 
     defaultConfig {
         minSdk = 24
@@ -28,16 +27,24 @@ android {
         targetCompatibility = JavaVersion.VERSION_17
     }
 
+    /**
+     * Modern configuration for Kotlin 2.x.
+     * Replaced the deprecated 'kotlinOptions' block to prevent build errors.
+     */
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        }
+    }
+
     // This block is crucial for newer AGP to correctly prepare sources and Javadoc
     // for publication. It automatically registers the necessary tasks.
     publishing {
         singleVariant("release") {
             withSourcesJar()
-            // withJavadocJar() // AGP handles this more directly in components["release"]
         }
     }
 }
-
 
 /**
  * Task to create a JAR containing the Dokka-generated HTML.
@@ -81,8 +88,8 @@ afterEvaluate {
                     }
                     developers {
                         developer {
-                            id.set("UDeedIt")
-                            name.set("Sargis Simonyan")
+                            id.set("UDeedIt") // Your GitHub ID
+                            name.set("Sargis Simonyan") // Your real name
                             email.set("udeedit.pro@gmail.com")
                         }
                     }
@@ -91,28 +98,9 @@ afterEvaluate {
                         developerConnection.set("scm:git:ssh://git@github.com/UDeedIt/CushyStorage.git")
                         url.set("https://github.com/UDeedIt/CushyStorage")
                     }
-//                    scm {
-//                        connection.set("scm:git:git://github.com/UDeedIt/CushyStorage.git")
-//                        developerConnection.set("scm:git:ssh://github.com:UDeedIt/CushyStorage.git")
-//                        url.set("https://github.com/UDeedIt/CushyStorage")
-//                    }
                 }
             }
         }
-
-        // --- Repository Configuration for Sonatype OSSRH ---
-//        repositories {
-//            maven {
-//                name = "OSSRH"
-//                // URL for Sonatype's staging repository
-//                url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
-//                credentials {
-//                    // Pulls username/password from gradle.properties
-//                    username = project.properties["ossrhUsername"] as String?
-//                    password = project.properties["ossrhPassword"] as String?
-//                }
-//            }
-//        }
 
         // for manual upload to Maven Central
         repositories {
@@ -122,15 +110,7 @@ afterEvaluate {
                 url = uri(layout.buildDirectory.dir("bundle"))
             }
         }
-
     }
-
-    // --- Signing Configuration ---
-//    project.extensions.configure(SigningExtension::class) {
-//        // Use the actual GPG application on your Mac
-//        useGpgCmd()
-//        sign(publishing.publications["release"])
-//    }
 
     // Explicitly configure the SigningExtension to apply the GPG signature
     project.extensions.configure(SigningExtension::class) {
@@ -153,7 +133,6 @@ afterEvaluate {
     }
 }
 
-
 dependencies {
     implementation(libs.androidx.appcompat)
     implementation(libs.androidx.core.ktx)
@@ -170,5 +149,4 @@ dependencies {
     // Instrumentation Testing
     androidTestImplementation(libs.androidx.junit)
     androidTestImplementation(libs.androidx.espresso.core)
-    androidTestImplementation(libs.kotlinx.coroutines.test.v180)
 }

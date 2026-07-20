@@ -1,23 +1,23 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
+    alias(libs.plugins.kotlin.android)
 }
 
 android {
     namespace = "pro.udeedit.devtools.cushystorage.demo"
 
-    compileSdk {
-        version = release(37) {
-            minorApiLevel = 1
-        }
-    }
+    // Downgraded to 35 for maximum compatibility with existing projects
+    //noinspection GradleDependency
+    compileSdk = 35
 
     defaultConfig {
         applicationId = "pro.udeedit.devtools.cushystorage.demo"
         minSdk = 24
-        targetSdk = 37
+        //noinspection OldTargetApi
+        targetSdk = 35
         versionCode = 1
-        versionName = "0.1"
+        versionName = "1.0.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -39,6 +39,16 @@ android {
 
     buildFeatures {
         compose = true
+    }
+
+    /**
+     * Modern configuration for Kotlin 2.x.
+     * This block replaces the deprecated 'kotlinOptions' to set the JVM target.
+     */
+    kotlin {
+        compilerOptions {
+            jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17)
+        }
     }
 }
 

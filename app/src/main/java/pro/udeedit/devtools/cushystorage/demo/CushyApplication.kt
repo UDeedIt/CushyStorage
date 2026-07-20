@@ -2,7 +2,6 @@ package pro.udeedit.devtools.cushystorage.demo
 
 import android.app.Application
 import pro.udeedit.devtools.cushystorage.CushyStorage
-import pro.udeedit.devtools.cushystorage.CushyConfig
 
 /**
  * Custom [Application] class for the CushyStorage demo project.
