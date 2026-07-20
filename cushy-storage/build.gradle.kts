@@ -3,9 +3,9 @@ import org.gradle.plugins.signing.SigningExtension
 plugins {
     alias(libs.plugins.android.library)
     `maven-publish`
-    id("signing") // Ensure the signing plugin is applied
-    alias(libs.plugins.dokka)
-    alias(libs.plugins.dokka.javadoc)
+    id("signing")
+    alias(libs.plugins.kotlin.dokka)
+//    alias(libs.plugins.dokka.javadoc)
 }
 
 android {
@@ -31,7 +31,6 @@ android {
     // This block is crucial for newer AGP to correctly prepare sources and Javadoc
     // for publication. It automatically registers the necessary tasks.
     publishing {
-        // We only publish the 'release' variant
         singleVariant("release") {
             withSourcesJar()
             // withJavadocJar() // AGP handles this more directly in components["release"]
@@ -39,44 +38,19 @@ android {
     }
 }
 
-// To generate documentation in HTML
-val dokkaHtmlJar by tasks.registering(Jar::class) {
-    description = "A HTML Documentation JAR containing Dokka HTML"
-    from(tasks.named("dokkaGeneratePublicationHtml"))
-    archiveClassifier.set("html-doc")
-}
 
-// To generate documentation in Javadoc
+/**
+ * Task to create a JAR containing the Dokka-generated HTML.
+ * This is a mandatory requirement for Maven Central publishing.
+ */
 val javadocJar by tasks.registering(Jar::class) {
-    description = "A Javadoc JAR containing Dokka Javadoc"
-    from(tasks.named("dokkaGeneratePublicationJavadoc"))
+    group = "publishing" // Categorizes the task in the Gradle menu
+    description = "Assembles a JAR archive containing the Dokka documentation"
+
     archiveClassifier.set("javadoc")
+    from(layout.buildDirectory.dir("dokka/html"))
+    dependsOn("dokkaGenerate")
 }
-
-// Correctly register javadocJar if you want to explicitly attach it.
-// If you're using the Dokka plugin, the task name will be 'dokkaHtmlJar'.
-// If you're using standard JavaDocs, it's typically 'javadocJar'.
-// Let's assume you'll use Dokka for better Kotlin docs.
-// You would need to add `id("org.jetbrains.dokka") version "1.9.10"` to your plugins block.
-
-// If using Dokka:
-//tasks.register("javadocJar", Jar::class) {
-//    dependsOn(tasks.named("dokkaHtml")) // Depend on Dokka's HTML generation task
-//    archiveClassifier.set("javadoc")
-//    from(tasks.named("dokkaHtml")) // Output of the Dokka task
-//}
-
-// This task will create a sourcesJar file
-//tasks.register("sourcesJar", Jar::class) {
-//    archiveClassifier.set("sources")
-//    from(android.sourceSets["main"].java.srcDirs)
-//}
-
-//// If NOT using Dokka (standard JavaDocs):
-// tasks.register("javadocJar", Jar::class) {
-//     archiveClassifier.set("javadoc")
-//     from(tasks.javadoc) // Assuming a 'javadoc' task exists
-// }
 
 // Publishing Block
 // Main publishing configuration for Maven Central
@@ -107,39 +81,74 @@ afterEvaluate {
                     }
                     developers {
                         developer {
-                            id.set("UDeedIt") // Your GitHub ID
-                            name.set("Sargis Simonyan") // Your real name
-                            email.set("YOUR_EMAIL_FOR_MAVEN@udeedit.pro") // Your email (public)
+                            id.set("UDeedIt")
+                            name.set("Sargis Simonyan")
+                            email.set("udeedit.pro@gmail.com")
                         }
                     }
                     scm {
-                        connection.set("scm:git:git://github.com/UDeedIt/CushyStorage.git")
-                        developerConnection.set("scm:git:ssh://github.com:UDeedIt/CushyStorage.git")
+                        connection.set("scm:git:https://github.com/UDeedIt/CushyStorage.git")
+                        developerConnection.set("scm:git:ssh://git@github.com/UDeedIt/CushyStorage.git")
                         url.set("https://github.com/UDeedIt/CushyStorage")
                     }
+//                    scm {
+//                        connection.set("scm:git:git://github.com/UDeedIt/CushyStorage.git")
+//                        developerConnection.set("scm:git:ssh://github.com:UDeedIt/CushyStorage.git")
+//                        url.set("https://github.com/UDeedIt/CushyStorage")
+//                    }
                 }
             }
         }
 
         // --- Repository Configuration for Sonatype OSSRH ---
+//        repositories {
+//            maven {
+//                name = "OSSRH"
+//                // URL for Sonatype's staging repository
+//                url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
+//                credentials {
+//                    // Pulls username/password from gradle.properties
+//                    username = project.properties["ossrhUsername"] as String?
+//                    password = project.properties["ossrhPassword"] as String?
+//                }
+//            }
+//        }
+
+        // for manual upload to Maven Central
         repositories {
             maven {
-                name = "OSSRH"
-                // URL for Sonatype's staging repository
-                url = uri("https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/")
-                credentials {
-                    // Pulls username/password from gradle.properties
-                    username = project.properties["ossrhUsername"] as String?
-                    password = project.properties["ossrhPassword"] as String?
-                }
+                name = "Bundle"
+                // This creates a folder inside your project build directory
+                url = uri(layout.buildDirectory.dir("bundle"))
             }
         }
+
     }
 
     // --- Signing Configuration ---
+//    project.extensions.configure(SigningExtension::class) {
+//        // Use the actual GPG application on your Mac
+//        useGpgCmd()
+//        sign(publishing.publications["release"])
+//    }
+
     // Explicitly configure the SigningExtension to apply the GPG signature
     project.extensions.configure(SigningExtension::class) {
-        useGpgCmd() // This is important: tells Gradle to use the gpg executable
+        val secretKey = project.findProperty("signing.secretKey") as String?
+        val password = project.findProperty("signing.password") as String?
+
+        if (secretKey != null && password != null) {
+            /**
+             * CRUCIAL: We use useInMemoryPgpKeys.
+             * This explicitly prevents Gradle from calling '/usr/local/bin/gpg'
+             * and avoids the 'ioctl' error entirely.
+             */
+            useInMemoryPgpKeys(secretKey, password)
+        } else {
+            // Fallback for local development if keys aren't in properties
+            useGpgCmd()
+        }
+
         sign(publishing.publications["release"])
     }
 }

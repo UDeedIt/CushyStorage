@@ -9,7 +9,6 @@
 /.idea/workspace.xml
 /.idea/navEditor.xml
 /.idea/assetWizardSettings.xml
-.DS_Store
 /build
 /captures
 .externalNativeBuild
@@ -20,3 +19,17 @@
 *.keystore
 *.jks
 *.bin
+
+# Sensitive credentials
+gradle.properties
+secret-key.gpg
+cushy-storage/secret-key.gpg
+
+# Local IDE/System files
+local.properties
+.DS_Store
+
+# Local build artifacts
+/build/
+**/build/
+cushy-storage/build/bundle/

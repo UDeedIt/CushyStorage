@@ -1,9 +1,6 @@
 plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.compose)
-
-    // Keep your existing Android and Kotlin plugins here
-//    id("org.jetbrains.dokka") version "2.0.0" apply false
 }
 
 android {
@@ -20,7 +17,7 @@ android {
         minSdk = 24
         targetSdk = 37
         versionCode = 1
-        versionName = "1.0"
+        versionName = "0.1"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
