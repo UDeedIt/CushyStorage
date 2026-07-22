@@ -67,18 +67,30 @@ object CushyStorage {
     }
 
     /**
-     * Internal helper to detect if the code is running inside the Android Studio Preview.
+     * Internal helper to detect if the code is running inside a non-Android
+     * environment (IDE Preview or a local Unit Test).
      */
     private fun isPreview(): Boolean {
         return try {
-            // Checks for common desktop JVM and IDE properties
-            android.os.Build.FINGERPRINT.contains("generic") ||
-                    android.os.Build.MODEL.contains("google_sdk") ||
-                    System.getProperty("java.vendor")?.contains("JetBrains") == true
+            val fingerprint = android.os.Build.FINGERPRINT
+            val model = android.os.Build.MODEL
+
+            fingerprint.contains("generic") ||
+                    model.contains("google_sdk") ||
+                    System.getProperty("java.vendor")?.contains("JetBrains") == true ||
+                    // This is the key check for JVM Unit Tests
+                    // Fix Bug CUSHY-13
+                    System.getProperty("java.class.path")?.contains("junit") == true
+
         } catch (_: Exception) {
-            false
+            /**
+             * If we catch any error trying to read android.os.Build,
+             * we are definitely in a standard JVM (Unit Test) environment.
+             */
+            true
         }
     }
+
 
     /**
      * Internal helper for accessing SharedPreferences.
