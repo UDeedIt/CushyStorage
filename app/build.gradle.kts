@@ -20,6 +20,7 @@ android {
         versionName = "1.0.3"
 
         // vc3 (1.0.3) - Stable Release (Compatible & Test-Safe)
+        //    - add branded launcher icon to demo app
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
