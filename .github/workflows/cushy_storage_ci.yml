@@ -1,8 +1,10 @@
 name: Cushy Storage CI
 
 on:
-  push:
-    branches: [ "master", "develop", "feature/**", "hotfix/**" ]
+#  push:
+#    branches: [ "master", "develop", "feature/**", "hotfix/**" ]
+
+  # Runs only when you open or update a PR to these branches
   pull_request:
     branches: [ "master", "develop" ]
 
