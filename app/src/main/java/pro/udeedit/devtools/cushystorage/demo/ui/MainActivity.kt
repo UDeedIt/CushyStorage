@@ -99,6 +99,9 @@ fun CushyDemoScreen() {
     // State for the manual secret entry
     var secureInput by remember { mutableStateOf("") }
 
+    // Reactive secure alias input
+    var aliasInput by remember { mutableStateOf("") }
+
     // Holds the decrypted result after a manual "Load" action
     var decryptedSecret by remember { mutableStateOf("Click Load") }
 
@@ -144,15 +147,25 @@ fun CushyDemoScreen() {
             confirmButton = {
                 TextButton(onClick = {
                     scope.launch {
-                        // Clearing keys across all library layers
+                        // Clear Data from all CushyStorage layers
                         CushyStorage.remove(KEY_USERNAME)
                         CushyStorage.remove(KEY_DARK_THEME)
                         CushyStorage.remove(KEY_USER_AGE)
-                        CushyStorage.saveStringReactive(KEY_COUNTER, "0")
+                        CushyStorage.remove(KEY_COUNTER) // Clear reactive counter
                         CushyStorage.remove(KEY_SECURE_TOKEN)
-                        CushyStorage.remove(KEY_SECURE_ALIAS)
+                        CushyStorage.remove(KEY_SECURE_ALIAS) // Clear reactive secure alias
 
-                        // Closing dialog and providing feedback
+                        // Reset Local UI States (Crucial for the Fix)
+                        simpleInput = "" // Clear username
+                        secureInput = "" // Clear manual token input
+                        decryptedSecret = "Click Load" // Reset decrypted display
+                        rawEncryptedValue = "No data saved yet" // Clear raw encrypted display
+                        isDarkTheme = false // Reset boolean toggle
+                        userAge = 25 // Reset age slider to initial value
+                        aliasInput = "" // Clear reactive secure alias input
+                        checkKey = "" // Clear key check input
+                        keyExistsStatus = "Enter a key to check" // Reset key check status
+
                         showResetDialogState.value = false
                         Toast.makeText(context, "All data cleared", Toast.LENGTH_SHORT).show()
                     }
@@ -313,8 +326,6 @@ fun CushyDemoScreen() {
                     )
                 }
             }
-
-            var aliasInput by remember { mutableStateOf("") }
 
             OutlinedTextField(
                 value = aliasInput,
