@@ -15,6 +15,9 @@
 .cxx
 /google-services.json
 
+# Android release build artifacts
+/app/release/
+
 # Specialized
 *.keystore
 *.jks
